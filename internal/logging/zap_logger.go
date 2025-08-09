@@ -33,6 +33,10 @@ func (l *ZapLogger) Error(msg string, fields ...Field) {
 	zapFields := toZapFields(fields)
 	l.logger.Error(msg, zapFields...)
 }
+func (l *ZapLogger) Fatal(msg string, fields ...Field) {
+	zapFields := toZapFields(fields)
+	l.logger.Fatal(msg, zapFields...)
+}
 
 func toZapFields(fields []Field) []zapcore.Field {
 	zapFields := make([]zapcore.Field, 0, len(fields))
