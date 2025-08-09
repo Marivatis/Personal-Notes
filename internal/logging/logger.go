@@ -12,3 +12,10 @@ type Logger interface {
 	Error(msg string, fields ...Field)
 	Fatal(msg string, fields ...Field)
 }
+
+func NewField(key string, value interface{}) Field {
+	return Field{
+		Key:   key,
+		Value: value,
+	}
+}
