@@ -26,7 +26,7 @@ func main() {
 func initConfig() *config.Config {
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Fatal("failed to initialize config: ", err)
+		log.Fatal("fail[config]: ", err)
 	}
 	return cfg
 }
@@ -58,10 +58,10 @@ func initLogger(appEnv string, logFormat string) *logging.ZapLogger {
 
 	logger, err := logging.NewZapLogger(cfg)
 	if err != nil {
-		log.Fatal("failed to initialize logger: ", err)
+		log.Fatal("fail[logger]: ", err)
 	}
 
-	logger.Info("initialized successfully: logger")
+	logger.Info("init[logger]: successfully initialized")
 	return logger
 }
 func initDBConnection(cfg *config.Config, logger logging.Logger) *pgxpool.Pool {
@@ -70,9 +70,9 @@ func initDBConnection(cfg *config.Config, logger logging.Logger) *pgxpool.Pool {
 
 	db, err := postgres.NewPostgresDB(ctx, cfg)
 	if err != nil {
-		logger.Fatal("failed to initialize db connection", logging.NewField("error", err))
+		logger.Fatal("fail[db]: failed to initialize db connection", logging.NewField("error", err))
 	}
 
-	logger.Info("initialized successfully: db connection", logging.NewField("database", cfg.DBName))
+	logger.Info("init[db]: successfully initialized db connection", logging.NewField("database", cfg.DBName))
 	return db
 }
