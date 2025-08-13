@@ -7,6 +7,30 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+const (
+	sqlCreateNote = `
+		INSERT INTO notes (id, owner_id, title, body, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, owner_id, title, body, created_at, updated_at
+	`
+	sqlGetByIdNote = `
+		SELECT id, owner_id, title, body, created_at, updated_at
+		FROM notes
+		WHERE id = $1 AND owner_id = $2
+	`
+	sqlUpdateNote = `
+		UPDATE notes
+		SET title = $3,
+			body = $4,
+			updated_at = $5
+		WHERE id = $1 AND owner_id = $2 
+	`
+	sqlDeleteNote = `
+		DELETE FROM notes
+		WHERE id = $1 AND owner_id = $2
+	`
+)
+
 type NoteRepository struct {
 	db     *pgxpool.Pool
 	logger *logging.Logger
