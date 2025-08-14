@@ -33,10 +33,10 @@ const (
 
 type NoteRepository struct {
 	db     *pgxpool.Pool
-	logger *logging.Logger
+	logger logging.Logger
 }
 
-func NewNoteRepository(db *pgxpool.Pool, logger *logging.Logger) *NoteRepository {
+func NewNoteRepository(db *pgxpool.Pool, logger logging.Logger) *NoteRepository {
 	return &NoteRepository{
 		db:     db,
 		logger: logger,
