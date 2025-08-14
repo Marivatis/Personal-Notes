@@ -1,6 +1,7 @@
-package logging
+package zaplog
 
 import (
+	"Personal-Notes/internal/logging"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -17,28 +18,28 @@ func NewZapLogger(cfg zap.Config) (*ZapLogger, error) {
 	return &ZapLogger{logger: zapLogger}, nil
 }
 
-func (l *ZapLogger) Info(msg string, fields ...Field) {
+func (l *ZapLogger) Info(msg string, fields ...logging.Field) {
 	zapFields := toZapFields(fields)
 	l.logger.Info(msg, zapFields...)
 }
-func (l *ZapLogger) Debug(msg string, fields ...Field) {
+func (l *ZapLogger) Debug(msg string, fields ...logging.Field) {
 	zapFields := toZapFields(fields)
 	l.logger.Debug(msg, zapFields...)
 }
-func (l *ZapLogger) Warn(msg string, fields ...Field) {
+func (l *ZapLogger) Warn(msg string, fields ...logging.Field) {
 	zapFields := toZapFields(fields)
 	l.logger.Warn(msg, zapFields...)
 }
-func (l *ZapLogger) Error(msg string, fields ...Field) {
+func (l *ZapLogger) Error(msg string, fields ...logging.Field) {
 	zapFields := toZapFields(fields)
 	l.logger.Error(msg, zapFields...)
 }
-func (l *ZapLogger) Fatal(msg string, fields ...Field) {
+func (l *ZapLogger) Fatal(msg string, fields ...logging.Field) {
 	zapFields := toZapFields(fields)
 	l.logger.Fatal(msg, zapFields...)
 }
 
-func toZapFields(fields []Field) []zapcore.Field {
+func toZapFields(fields []logging.Field) []zapcore.Field {
 	zapFields := make([]zapcore.Field, 0, len(fields))
 	for _, f := range fields {
 		zapFields = append(zapFields, zap.Any(f.Key, f.Value))

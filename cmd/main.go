@@ -3,6 +3,7 @@ package main
 import (
 	"Personal-Notes/internal/config"
 	"Personal-Notes/internal/logging"
+	"Personal-Notes/internal/logging/zaplog"
 	"Personal-Notes/internal/repository/postgres"
 	"context"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -30,7 +31,7 @@ func initConfig() *config.Config {
 	}
 	return cfg
 }
-func initLogger(appEnv string, logFormat string) *logging.ZapLogger {
+func initLogger(appEnv string, logFormat string) *zaplog.ZapLogger {
 	var cfg zap.Config
 
 	if appEnv == "production" {
@@ -56,7 +57,7 @@ func initLogger(appEnv string, logFormat string) *logging.ZapLogger {
 
 	cfg.InitialFields = map[string]interface{}{"service": "personal_notes_api"}
 
-	logger, err := logging.NewZapLogger(cfg)
+	logger, err := zaplog.NewZapLogger(cfg)
 	if err != nil {
 		log.Fatal("fail[logger]: ", err)
 	}
