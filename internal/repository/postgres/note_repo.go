@@ -9,8 +9,8 @@ import (
 
 const (
 	sqlCreateNote = `
-		INSERT INTO notes (id, owner_id, title, body, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO notes (owner_id, title, body, created_at)
+		VALUES ($1, $2, $3, $4)
 		RETURNING id, owner_id, title, body, created_at, updated_at
 	`
 	sqlGetByIdNote = `
