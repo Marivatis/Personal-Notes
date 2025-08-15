@@ -91,9 +91,44 @@ func (r *NoteRepository) Create(ctx context.Context, note entity.Note) (entity.N
 	)
 	return resp, nil
 }
-func (r *NoteRepository) GetById(ctx context.Context, id int) (entity.Note, error) {
-	return entity.Note{}, nil
 func (r *NoteRepository) GetById(ctx context.Context, id int, ownerId int) (entity.Note, error) {
+	start := time.Now()
+
+	r.logger.Debug("monitor[note]: starting note db get by id",
+		logging.NewField("id", id),
+		logging.NewField("owner_id", ownerId),
+	)
+
+	var resp entity.Note
+
+	err := r.db.QueryRow(ctx, sqlGetByIdNote, id, ownerId).
+		Scan(&resp.ID, &resp.OwnerID, &resp.Title, &resp.Body, &resp.CreatedAt, &resp.UpdatedAt)
+	if err != nil {
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			r.logger.Error(fmt.Sprintf("fail[note]: %e", repository.ErrTimeout),
+				logging.NewField("id", id),
+				logging.NewField("owner_id", ownerId),
+				logging.NewField("operation", "get_by_id"),
+				logging.NewField("duration", time.Since(start)),
+				logging.NewField("error", err),
+			)
+			return entity.Note{}, fmt.Errorf("%w: %w", repository.ErrTimeout, err)
+		}
+		r.logger.Error(fmt.Sprintf("fail[note]: %e", repository.ErrDB),
+			logging.NewField("id", id),
+			logging.NewField("owner_id", ownerId),
+			logging.NewField("operation", "get_by_id"),
+			logging.NewField("duration", time.Since(start)),
+		)
+		return entity.Note{}, fmt.Errorf("%w: %w", repository.ErrDB, err)
+	}
+
+	r.logger.Info("done[note]: got by id successfully",
+		logging.NewField("id", resp.ID),
+		logging.NewField("owner_id", resp.OwnerID),
+		logging.NewField("title", resp.Title),
+	)
+	return resp, nil
 }
 func (r *NoteRepository) Update(ctx context.Context, note entity.Note) (entity.Note, error) {
 	return entity.Note{}, nil
