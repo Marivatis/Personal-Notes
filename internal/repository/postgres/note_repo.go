@@ -93,10 +93,11 @@ func (r *NoteRepository) Create(ctx context.Context, note entity.Note) (entity.N
 }
 func (r *NoteRepository) GetById(ctx context.Context, id int) (entity.Note, error) {
 	return entity.Note{}, nil
+func (r *NoteRepository) GetById(ctx context.Context, id int, ownerId int) (entity.Note, error) {
 }
 func (r *NoteRepository) Update(ctx context.Context, note entity.Note) (entity.Note, error) {
 	return entity.Note{}, nil
 }
-func (r *NoteRepository) Delete(ctx context.Context, id int) error {
+func (r *NoteRepository) Delete(ctx context.Context, id int, ownerId int) error {
 	return nil
 }
