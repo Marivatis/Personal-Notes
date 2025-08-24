@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"Personal-Notes/internal/entity"
@@ -30,6 +31,7 @@ const (
 			body = $4,
 			updated_at = $5
 		WHERE id = $1 AND owner_id = $2 
+		RETURNING id, owner_id, title, body, created_at, updated_at
 	`
 	sqlDeleteNote = `
 		DELETE FROM notes
@@ -68,7 +70,7 @@ func (r *NoteRepository) Create(ctx context.Context, note entity.Note) (entity.N
 		Scan(&resp.ID, &resp.OwnerID, &resp.Title, &resp.Body, &resp.CreatedAt, &resp.UpdatedAt)
 	if err != nil {
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-			r.logger.Error(fmt.Sprintf("fail[note]: %e", repository.ErrTimeout),
+			r.logger.Error(fmt.Sprintf("fail[note]: %v", repository.ErrTimeout),
 				logging.NewField("owner_id", note.OwnerID),
 				logging.NewField("title", note.Title),
 				logging.NewField("operation", "insert"),
@@ -77,7 +79,7 @@ func (r *NoteRepository) Create(ctx context.Context, note entity.Note) (entity.N
 			)
 			return entity.Note{}, fmt.Errorf("%w: %w", repository.ErrTimeout, err)
 		}
-		r.logger.Error(fmt.Sprintf("fail[note]: %e", repository.ErrDB),
+		r.logger.Error(fmt.Sprintf("fail[note]: %v", repository.ErrDB),
 			logging.NewField("owner_id", note.OwnerID),
 			logging.NewField("title", note.Title),
 			logging.NewField("operation", "insert"),
@@ -107,8 +109,18 @@ func (r *NoteRepository) GetByID(ctx context.Context, id int, ownerID int) (enti
 	err := r.db.QueryRow(ctx, sqlGetByIDNote, id, ownerID).
 		Scan(&resp.ID, &resp.OwnerID, &resp.Title, &resp.Body, &resp.CreatedAt, &resp.UpdatedAt)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			r.logger.Error(fmt.Sprintf("fail[note]: %v", repository.ErrNotFound),
+				logging.NewField("id", id),
+				logging.NewField("owner_id", ownerID),
+				logging.NewField("operation", "get_by_id"),
+				logging.NewField("duration", time.Since(start)),
+				logging.NewField("error", err),
+			)
+			return entity.Note{}, fmt.Errorf("%w: %w", repository.ErrNotFound, err)
+		}
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-			r.logger.Error(fmt.Sprintf("fail[note]: %e", repository.ErrTimeout),
+			r.logger.Error(fmt.Sprintf("fail[note]: %v", repository.ErrTimeout),
 				logging.NewField("id", id),
 				logging.NewField("owner_id", ownerID),
 				logging.NewField("operation", "get_by_id"),
@@ -117,11 +129,12 @@ func (r *NoteRepository) GetByID(ctx context.Context, id int, ownerID int) (enti
 			)
 			return entity.Note{}, fmt.Errorf("%w: %w", repository.ErrTimeout, err)
 		}
-		r.logger.Error(fmt.Sprintf("fail[note]: %e", repository.ErrDB),
+		r.logger.Error(fmt.Sprintf("fail[note]: %v", repository.ErrDB),
 			logging.NewField("id", id),
 			logging.NewField("owner_id", ownerID),
 			logging.NewField("operation", "get_by_id"),
 			logging.NewField("duration", time.Since(start)),
+			logging.NewField("error", err),
 		)
 		return entity.Note{}, fmt.Errorf("%w: %w", repository.ErrDB, err)
 	}
