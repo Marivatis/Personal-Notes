@@ -148,9 +148,105 @@ func (r *NoteRepository) GetByID(ctx context.Context, id int, ownerID int) (enti
 }
 
 func (r *NoteRepository) Update(ctx context.Context, note entity.Note) (entity.Note, error) {
-	return entity.Note{}, nil
+	start := time.Now()
+
+	note.UpdatedAt = &start
+
+	r.logger.Debug("monitor[note]: starting note db update",
+		logging.NewField("id", note.ID),
+		logging.NewField("owner_id", note.OwnerID),
+		logging.NewField("title", note.Title),
+		logging.NewField("body", note.Body),
+		logging.NewField("created_at", note.CreatedAt),
+		logging.NewField("updated_at", note.UpdatedAt),
+	)
+
+	var resp entity.Note
+
+	err := r.db.QueryRow(ctx, sqlUpdateNote, note.ID, note.OwnerID, note.Title, note.Body, note.UpdatedAt).
+		Scan(&resp.ID, &resp.OwnerID, &resp.Title, &resp.Body, &resp.CreatedAt, &resp.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			r.logger.Error(fmt.Sprintf("fail[note]: %v", repository.ErrNotFound),
+				logging.NewField("id", note.ID),
+				logging.NewField("owner_id", note.OwnerID),
+				logging.NewField("operation", "update"),
+				logging.NewField("duration", time.Since(start)),
+				logging.NewField("error", err),
+			)
+			return entity.Note{}, fmt.Errorf("%w: %w", repository.ErrNotFound, err)
+		}
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			r.logger.Error(fmt.Sprintf("fail[note]: %v", repository.ErrTimeout),
+				logging.NewField("id", note.ID),
+				logging.NewField("owner_id", note.OwnerID),
+				logging.NewField("operation", "update"),
+				logging.NewField("duration", time.Since(start)),
+				logging.NewField("error", err),
+			)
+			return entity.Note{}, fmt.Errorf("%w: %w", repository.ErrTimeout, err)
+		}
+		r.logger.Error(fmt.Sprintf("fail[note]: %v", repository.ErrDB),
+			logging.NewField("id", note.ID),
+			logging.NewField("owner_id", note.OwnerID),
+			logging.NewField("operation", "update"),
+			logging.NewField("duration", time.Since(start)),
+			logging.NewField("error", err),
+		)
+		return entity.Note{}, fmt.Errorf("%w: %w", repository.ErrDB, err)
+	}
+
+	r.logger.Info("done[note]: updated successfully",
+		logging.NewField("id", resp.ID),
+		logging.NewField("owner_id", resp.OwnerID),
+		logging.NewField("title", resp.Title),
+	)
+	return resp, nil
 }
 
 func (r *NoteRepository) Delete(ctx context.Context, id int, ownerID int) error {
+	start := time.Now()
+
+	r.logger.Debug("monitor[note]: starting note db delete",
+		logging.NewField("id", id),
+		logging.NewField("owner_id", ownerID),
+	)
+
+	tag, err := r.db.Exec(ctx, sqlDeleteNote, id, ownerID)
+	if err != nil {
+		if tag.RowsAffected() == 0 {
+			r.logger.Error(fmt.Sprintf("fail[note]: %v", repository.ErrNotFound),
+				logging.NewField("id", id),
+				logging.NewField("owner_id", ownerID),
+				logging.NewField("operation", "delete"),
+				logging.NewField("duration", time.Since(start)),
+				logging.NewField("error", err),
+			)
+			return fmt.Errorf("%w: %w", repository.ErrNotFound, err)
+		}
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			r.logger.Error(fmt.Sprintf("fail[note]: %v", repository.ErrTimeout),
+				logging.NewField("id", id),
+				logging.NewField("owner_id", ownerID),
+				logging.NewField("operation", "delete"),
+				logging.NewField("duration", time.Since(start)),
+				logging.NewField("error", err),
+			)
+			return fmt.Errorf("%w: %w", repository.ErrTimeout, err)
+		}
+		r.logger.Error(fmt.Sprintf("fail[note]: %v", repository.ErrDB),
+			logging.NewField("id", id),
+			logging.NewField("owner_id", ownerID),
+			logging.NewField("operation", "delete"),
+			logging.NewField("duration", time.Since(start)),
+			logging.NewField("error", err),
+		)
+		return fmt.Errorf("%w: %w", repository.ErrDB, err)
+	}
+
+	r.logger.Info("done[note]: deleted successfully",
+		logging.NewField("id", id),
+		logging.NewField("owner_id", ownerID),
+	)
 	return nil
 }
