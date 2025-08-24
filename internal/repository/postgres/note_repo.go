@@ -1,14 +1,16 @@
 package postgres
 
 import (
-	"Personal-Notes/internal/entity"
-	"Personal-Notes/internal/logging"
-	"Personal-Notes/internal/repository"
 	"context"
 	"errors"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+
+	"Personal-Notes/internal/entity"
+	"Personal-Notes/internal/logging"
+	"Personal-Notes/internal/repository"
 )
 
 const (
@@ -17,7 +19,7 @@ const (
 		VALUES ($1, $2, $3, $4)
 		RETURNING id, owner_id, title, body, created_at, updated_at
 	`
-	sqlGetByIdNote = `
+	sqlGetByIDNote = `
 		SELECT id, owner_id, title, body, created_at, updated_at
 		FROM notes
 		WHERE id = $1 AND owner_id = $2
@@ -91,23 +93,24 @@ func (r *NoteRepository) Create(ctx context.Context, note entity.Note) (entity.N
 	)
 	return resp, nil
 }
-func (r *NoteRepository) GetById(ctx context.Context, id int, ownerId int) (entity.Note, error) {
+
+func (r *NoteRepository) GetByID(ctx context.Context, id int, ownerID int) (entity.Note, error) {
 	start := time.Now()
 
 	r.logger.Debug("monitor[note]: starting note db get by id",
 		logging.NewField("id", id),
-		logging.NewField("owner_id", ownerId),
+		logging.NewField("owner_id", ownerID),
 	)
 
 	var resp entity.Note
 
-	err := r.db.QueryRow(ctx, sqlGetByIdNote, id, ownerId).
+	err := r.db.QueryRow(ctx, sqlGetByIDNote, id, ownerID).
 		Scan(&resp.ID, &resp.OwnerID, &resp.Title, &resp.Body, &resp.CreatedAt, &resp.UpdatedAt)
 	if err != nil {
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 			r.logger.Error(fmt.Sprintf("fail[note]: %e", repository.ErrTimeout),
 				logging.NewField("id", id),
-				logging.NewField("owner_id", ownerId),
+				logging.NewField("owner_id", ownerID),
 				logging.NewField("operation", "get_by_id"),
 				logging.NewField("duration", time.Since(start)),
 				logging.NewField("error", err),
@@ -116,7 +119,7 @@ func (r *NoteRepository) GetById(ctx context.Context, id int, ownerId int) (enti
 		}
 		r.logger.Error(fmt.Sprintf("fail[note]: %e", repository.ErrDB),
 			logging.NewField("id", id),
-			logging.NewField("owner_id", ownerId),
+			logging.NewField("owner_id", ownerID),
 			logging.NewField("operation", "get_by_id"),
 			logging.NewField("duration", time.Since(start)),
 		)
@@ -130,9 +133,11 @@ func (r *NoteRepository) GetById(ctx context.Context, id int, ownerId int) (enti
 	)
 	return resp, nil
 }
+
 func (r *NoteRepository) Update(ctx context.Context, note entity.Note) (entity.Note, error) {
 	return entity.Note{}, nil
 }
-func (r *NoteRepository) Delete(ctx context.Context, id int, ownerId int) error {
+
+func (r *NoteRepository) Delete(ctx context.Context, id int, ownerID int) error {
 	return nil
 }

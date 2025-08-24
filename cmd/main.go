@@ -1,16 +1,18 @@
 package main
 
 import (
+	"context"
+	"log"
+	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+
 	"Personal-Notes/internal/config"
 	"Personal-Notes/internal/logging"
 	"Personal-Notes/internal/logging/zaplog"
 	"Personal-Notes/internal/repository/postgres"
-	"context"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"log"
-	"time"
 )
 
 func main() {
@@ -31,6 +33,7 @@ func initConfig() *config.Config {
 	}
 	return cfg
 }
+
 func initLogger(appEnv string, logFormat string) *zaplog.ZapLogger {
 	var cfg zap.Config
 
@@ -55,7 +58,7 @@ func initLogger(appEnv string, logFormat string) *zaplog.ZapLogger {
 	cfg.EncoderConfig.StacktraceKey = "stacktrace"
 	cfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 
-	cfg.InitialFields = map[string]interface{}{"service": "personal_notes_api"}
+	cfg.InitialFields = map[string]any{"service": "personal_notes_api"}
 
 	logger, err := zaplog.NewZapLogger(cfg)
 	if err != nil {
@@ -65,6 +68,7 @@ func initLogger(appEnv string, logFormat string) *zaplog.ZapLogger {
 	logger.Info("init[logger]: successfully initialized")
 	return logger
 }
+
 func initDBConnection(cfg *config.Config, logger logging.Logger) *pgxpool.Pool {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -74,6 +78,9 @@ func initDBConnection(cfg *config.Config, logger logging.Logger) *pgxpool.Pool {
 		logger.Fatal("fail[db]: failed to initialize db connection", logging.NewField("error", err))
 	}
 
-	logger.Info("init[db]: successfully initialized db connection", logging.NewField("database", cfg.DBName))
+	logger.Info(
+		"init[db]: successfully initialized db connection",
+		logging.NewField("database", cfg.DBName),
+	)
 	return db
 }

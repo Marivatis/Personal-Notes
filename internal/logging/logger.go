@@ -2,7 +2,7 @@ package logging
 
 type Field struct {
 	Key   string
-	Value interface{}
+	Value any
 }
 
 type Logger interface {
@@ -13,7 +13,7 @@ type Logger interface {
 	Fatal(msg string, fields ...Field)
 }
 
-func NewField(key string, value interface{}) Field {
+func NewField(key string, value any) Field {
 	return Field{
 		Key:   key,
 		Value: value,

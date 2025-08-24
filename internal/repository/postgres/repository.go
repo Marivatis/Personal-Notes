@@ -1,9 +1,10 @@
 package postgres
 
 import (
+	"github.com/jackc/pgx/v5/pgxpool"
+
 	"Personal-Notes/internal/logging"
 	"Personal-Notes/internal/repository"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func NewRepository(db *pgxpool.Pool, logger logging.Logger) *repository.Repository {

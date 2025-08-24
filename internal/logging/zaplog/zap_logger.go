@@ -1,9 +1,10 @@
 package zaplog
 
 import (
-	"Personal-Notes/internal/logging"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"Personal-Notes/internal/logging"
 )
 
 type ZapLogger struct {
@@ -22,18 +23,22 @@ func (l *ZapLogger) Info(msg string, fields ...logging.Field) {
 	zapFields := toZapFields(fields)
 	l.logger.Info(msg, zapFields...)
 }
+
 func (l *ZapLogger) Debug(msg string, fields ...logging.Field) {
 	zapFields := toZapFields(fields)
 	l.logger.Debug(msg, zapFields...)
 }
+
 func (l *ZapLogger) Warn(msg string, fields ...logging.Field) {
 	zapFields := toZapFields(fields)
 	l.logger.Warn(msg, zapFields...)
 }
+
 func (l *ZapLogger) Error(msg string, fields ...logging.Field) {
 	zapFields := toZapFields(fields)
 	l.logger.Error(msg, zapFields...)
 }
+
 func (l *ZapLogger) Fatal(msg string, fields ...logging.Field) {
 	zapFields := toZapFields(fields)
 	l.logger.Fatal(msg, zapFields...)

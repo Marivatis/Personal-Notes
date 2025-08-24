@@ -1,11 +1,13 @@
 package postgres
 
 import (
-	"Personal-Notes/internal/config"
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+
+	"Personal-Notes/internal/config"
 )
 
 func NewPostgresDB(ctx context.Context, cfg *config.Config) (*pgxpool.Pool, error) {
