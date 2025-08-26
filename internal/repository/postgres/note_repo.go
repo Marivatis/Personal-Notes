@@ -214,16 +214,6 @@ func (r *NoteRepository) Delete(ctx context.Context, id int, ownerID int) error 
 
 	tag, err := r.db.Exec(ctx, sqlDeleteNote, id, ownerID)
 	if err != nil {
-		if tag.RowsAffected() == 0 {
-			r.logger.Error(fmt.Sprintf("fail[note]: %v", repository.ErrNotFound),
-				logging.NewField("id", id),
-				logging.NewField("owner_id", ownerID),
-				logging.NewField("operation", "delete"),
-				logging.NewField("duration", time.Since(start)),
-				logging.NewField("error", err),
-			)
-			return fmt.Errorf("%w: %w", repository.ErrNotFound, err)
-		}
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 			r.logger.Error(fmt.Sprintf("fail[note]: %v", repository.ErrTimeout),
 				logging.NewField("id", id),
@@ -242,6 +232,16 @@ func (r *NoteRepository) Delete(ctx context.Context, id int, ownerID int) error 
 			logging.NewField("error", err),
 		)
 		return fmt.Errorf("%w: %w", repository.ErrDB, err)
+	}
+	if tag.RowsAffected() == 0 {
+		r.logger.Error(fmt.Sprintf("fail[note]: %v", repository.ErrNotFound),
+			logging.NewField("id", id),
+			logging.NewField("owner_id", ownerID),
+			logging.NewField("operation", "delete"),
+			logging.NewField("duration", time.Since(start)),
+			logging.NewField("error", err),
+		)
+		return fmt.Errorf("%w: %w", repository.ErrNotFound, err)
 	}
 
 	r.logger.Info("done[note]: deleted successfully",
