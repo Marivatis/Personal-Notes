@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
-
 	"Personal-Notes/internal/entity"
 	"Personal-Notes/internal/logging"
 	"Personal-Notes/internal/repository"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const (
@@ -254,11 +254,7 @@ func (r *UserRepository) Update(ctx context.Context, user entity.User) (entity.U
 	return resp, nil
 }
 
-func (r *UserRepository) UpdateLastLoginAt(
-	ctx context.Context,
-	id int,
-	lastLoginAt time.Time,
-) error {
+func (r *UserRepository) UpdateLastLoginAt(ctx context.Context, id int, lastLoginAt time.Time) error {
 	start := time.Now()
 
 	updatedAt := &start
