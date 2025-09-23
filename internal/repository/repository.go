@@ -23,7 +23,15 @@ type User interface {
 	Delete(ctx context.Context, id int) error
 }
 
+type RefreshToken interface {
+	Create(ctx context.Context, refreshToken entity.RefreshToken) (entity.RefreshToken, error)
+	GetByToken(ctx context.Context, tokenHash string) (entity.RefreshToken, error)
+	RevokeByID(ctx context.Context, id int, revokedAt time.Time) error
+	CleanupExpired(ctx context.Context) error
+}
+
 type Repository struct {
 	Note
 	User
+	RefreshToken
 }
